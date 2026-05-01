@@ -47,7 +47,7 @@ export const DEFAULT_PRICES: Prices = {
   premium: 90,
 };
 
-export const TRACKING_START = { year: 2026, month: 5 }; // May 2026
+export const TRACKING_START = { year: 2026, month: 4 }; // April 2026
 
 export function totalCuts(entry: DayEntry): number {
   return entry.cabelo + entry.combo + entry.barba + entry.premium;
