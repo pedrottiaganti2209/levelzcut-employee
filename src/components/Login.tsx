@@ -140,16 +140,6 @@ export function Login({ onLogin, onSignUp, onResetPassword }: Props) {
               <PasswordInput value={password} onChange={setPassword} autoComplete="current-password" />
             </div>
 
-            <div className="text-right">
-              <button
-                type="button"
-                onClick={() => resetForm('forgot')}
-                className="text-xs text-gray-500 hover:text-yellow-500 transition-colors"
-              >
-                Esqueci minha senha
-              </button>
-            </div>
-
             {error && (
               <p className="text-red-400 text-sm text-center bg-red-900/20 border border-red-800 rounded-lg py-2 px-3">
                 {error}
@@ -164,16 +154,27 @@ export function Login({ onLogin, onSignUp, onResetPassword }: Props) {
               {loading ? 'Entrando…' : 'Entrar'}
             </button>
 
-            <p className="text-center text-sm text-gray-500 pt-1">
-              Não tem conta?{' '}
-              <button
-                type="button"
-                onClick={() => resetForm('signup')}
-                className="text-yellow-500 hover:text-yellow-400 font-semibold transition-colors"
-              >
-                Criar conta
-              </button>
-            </p>
+            <button
+              type="button"
+              onClick={() => resetForm('forgot')}
+              className="w-full text-center text-sm text-gray-500 hover:text-yellow-500 transition-colors py-1"
+            >
+              Esqueci minha senha
+            </button>
+
+            <div className="relative flex items-center gap-3 py-1">
+              <div className="flex-1 h-px bg-gray-800" />
+              <span className="text-xs text-gray-600">ou</span>
+              <div className="flex-1 h-px bg-gray-800" />
+            </div>
+
+            <button
+              type="button"
+              onClick={() => resetForm('signup')}
+              className="w-full border border-yellow-600/50 hover:border-yellow-500 text-yellow-500 hover:text-yellow-400 font-bold py-3 rounded-xl text-sm transition-colors"
+            >
+              Criar nova conta
+            </button>
           </form>
         )}
 
