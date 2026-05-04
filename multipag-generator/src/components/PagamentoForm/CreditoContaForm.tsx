@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { PagamentoCreditoConta, TipoModalidade } from '../../types/pagamento';
 import { validarCpfOuCnpj, detectarTipoDocumento } from '../../lib/validators/cnpj-cpf';
 import { Field, FormGrid, inputClass, today } from './shared';
+import { maskCpfCnpj } from '../../lib/masks';
 
 interface Props {
   modalidade: 'credito-conta' | 'salario-conta' | 'salario-conta-salario';
@@ -110,7 +111,7 @@ export function CreditoContaForm({ modalidade, onAdd }: Props) {
       </Field>
       <Field label="CPF / CNPJ do Beneficiário" required error={errors.cpfCnpjBeneficiario}>
         <input type="text" className={inputClass(!!errors.cpfCnpjBeneficiario)} placeholder="000.000.000-00 ou 00.000.000/0000-00"
-          value={f.cpfCnpjBeneficiario} onChange={set('cpfCnpjBeneficiario')} maxLength={18} />
+          value={f.cpfCnpjBeneficiario} onChange={(e) => setF({ ...f, cpfCnpjBeneficiario: maskCpfCnpj(e.target.value) })} maxLength={18} />
       </Field>
       <Field label="Valor (R$)" required error={errors.valor}>
         <input type="text" className={inputClass(!!errors.valor)} placeholder="0,00"

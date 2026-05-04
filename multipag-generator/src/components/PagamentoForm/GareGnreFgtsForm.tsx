@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { PagamentoGARE, TipoModalidade } from '../../types/pagamento';
 import { validarCpfOuCnpj, detectarTipoDocumento } from '../../lib/validators/cnpj-cpf';
 import { Field, FormGrid, inputClass, today } from './shared';
+import { maskCpfCnpj, maskCnpj, maskPeriodo } from '../../lib/masks';
 
 interface Props {
   modalidade: 'gare-icms' | 'gnre' | 'fgts';
@@ -89,8 +90,10 @@ export function GareGnreFgtsForm({ modalidade, onAdd }: Props) {
     <FormGrid>
       <Field label={meta.inscLabel} required error={errors.cnpjCpfContribuinte}>
         <input type="text" className={inputClass(!!errors.cnpjCpfContribuinte)}
-          placeholder={isFGTS ? 'CNPJ' : isGNRE ? 'CNPJ ou CPF' : 'IE (só números)'}
-          value={f.cnpjCpfContribuinte} onChange={set('cnpjCpfContribuinte')} maxLength={18} />
+          placeholder={isFGTS ? '00.000.000/0000-00' : isGNRE ? '000.000.000-00 ou 00.000.000/0000-00' : 'IE (só números)'}
+          value={f.cnpjCpfContribuinte}
+          onChange={(e) => setF({ ...f, cnpjCpfContribuinte: isFGTS ? maskCnpj(e.target.value) : maskCpfCnpj(e.target.value) })}
+          maxLength={18} />
       </Field>
       <Field label={isFGTS ? 'Nº Recolhimento (Conectividade Social)' : 'Código da Receita'}
         required error={errors.codigoReceita} hint={meta.receitaHint}>
@@ -100,7 +103,9 @@ export function GareGnreFgtsForm({ modalidade, onAdd }: Props) {
       </Field>
       <Field label="Período de Apuração" required error={errors.periodoApuracao}>
         <input type="text" className={inputClass(!!errors.periodoApuracao)}
-          placeholder="MMAAAA (ex: 012024)" value={f.periodoApuracao} onChange={set('periodoApuracao')} maxLength={6} />
+          placeholder="MM/AAAA"
+          value={f.periodoApuracao}
+          onChange={(e) => setF({ ...f, periodoApuracao: maskPeriodo(e.target.value) })} maxLength={7} />
       </Field>
       {isGNRE && (
         <Field label="UF Favorecida" required>

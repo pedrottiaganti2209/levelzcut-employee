@@ -1,5 +1,6 @@
 import type { EmpresaData } from '../types/pagamento';
 import { validarCNPJ } from '../lib/validators/cnpj-cpf';
+import { maskCnpj } from '../lib/masks';
 
 interface Props {
   data: EmpresaData;
@@ -31,8 +32,10 @@ export function EmpresaForm({ data, onChange }: Props) {
   const cnpjValido = data.cnpj.replace(/\D/g, '').length === 14
     ? validarCNPJ(data.cnpj) : null;
 
-  const set = (field: keyof EmpresaData) => (e: React.ChangeEvent<HTMLInputElement>) =>
-    onChange({ ...data, [field]: e.target.value });
+  const set = (field: keyof EmpresaData) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = field === 'cnpj' ? maskCnpj(e.target.value) : e.target.value;
+    onChange({ ...data, [field]: value });
+  };
 
   return (
     <section className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">

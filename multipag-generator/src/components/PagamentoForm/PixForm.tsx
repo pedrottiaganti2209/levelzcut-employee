@@ -3,6 +3,7 @@ import type { PagamentoPix, PagamentoPixQR, TipoChavePix } from '../../types/pag
 import { validarChavePix } from '../../lib/validators/pix';
 import { validarCpfOuCnpj, detectarTipoDocumento } from '../../lib/validators/cnpj-cpf';
 import { Field, FormGrid, inputClass, selectClass, today } from './shared';
+import { maskCpfCnpj, maskCpf, maskCnpj, maskPhone } from '../../lib/masks';
 
 interface PixChaveProps {
   modalidade: 'pix-chave' | 'ted-to-pix';
@@ -59,10 +60,17 @@ export function PixChaveForm({ modalidade, onAdd }: PixChaveProps) {
   const tipoChavePlaceholders: Record<TipoChavePix, string> = {
     cpf: '000.000.000-00',
     cnpj: '00.000.000/0000-00',
-    celular: '+5511999999999',
+    celular: '(11) 99999-9999',
     email: 'nome@email.com',
     evp: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
   };
+
+  function applyChaveMask(raw: string, tipo: TipoChavePix): string {
+    if (tipo === 'cpf') return maskCpf(raw);
+    if (tipo === 'cnpj') return maskCnpj(raw);
+    if (tipo === 'celular') return maskPhone(raw);
+    return raw;
+  }
 
   return (
     <FormGrid>
@@ -79,15 +87,16 @@ export function PixChaveForm({ modalidade, onAdd }: PixChaveProps) {
       <Field label="Chave PIX" required error={errors.chavePix}>
         <input type="text" className={inputClass(!!errors.chavePix)}
           placeholder={tipoChavePlaceholders[f.tipoChave]}
-          value={f.chavePix} onChange={set('chavePix')} />
+          value={f.chavePix}
+          onChange={(e) => setF({ ...f, chavePix: applyChaveMask(e.target.value, f.tipoChave) })} />
       </Field>
       <Field label="Nome do Favorecido" required error={errors.nomeBeneficiario}>
         <input type="text" className={inputClass(!!errors.nomeBeneficiario)} placeholder="Nome completo" maxLength={30}
           value={f.nomeBeneficiario} onChange={set('nomeBeneficiario')} />
       </Field>
       <Field label="CPF/CNPJ do Favorecido" required error={errors.cpfCnpjBeneficiario}>
-        <input type="text" className={inputClass(!!errors.cpfCnpjBeneficiario)} placeholder="CPF ou CNPJ"
-          value={f.cpfCnpjBeneficiario} onChange={set('cpfCnpjBeneficiario')} maxLength={18} />
+        <input type="text" className={inputClass(!!errors.cpfCnpjBeneficiario)} placeholder="000.000.000-00 ou 00.000.000/0000-00"
+          value={f.cpfCnpjBeneficiario} onChange={(e) => setF({ ...f, cpfCnpjBeneficiario: maskCpfCnpj(e.target.value) })} maxLength={18} />
       </Field>
       <Field label="Valor (R$)" required error={errors.valor}>
         <input type="text" className={inputClass(!!errors.valor)} placeholder="0,00"

@@ -3,6 +3,7 @@ import type { PagamentoTED } from '../../types/pagamento';
 import { validarCpfOuCnpj, detectarTipoDocumento } from '../../lib/validators/cnpj-cpf';
 import { FINALIDADES_TED } from '../../lib/cnab240/segmento-a';
 import { Field, FormGrid, inputClass, selectClass, today } from './shared';
+import { maskCpfCnpj } from '../../lib/masks';
 
 interface Props { onAdd: (p: PagamentoTED) => void; }
 
@@ -89,8 +90,8 @@ export function TEDForm({ onAdd }: Props) {
           value={f.nomeBeneficiario} onChange={set('nomeBeneficiario')} />
       </Field>
       <Field label="CPF / CNPJ" required error={errors.cpfCnpjBeneficiario}>
-        <input type="text" className={inputClass(!!errors.cpfCnpjBeneficiario)} placeholder="CPF ou CNPJ"
-          value={f.cpfCnpjBeneficiario} onChange={set('cpfCnpjBeneficiario')} maxLength={18} />
+        <input type="text" className={inputClass(!!errors.cpfCnpjBeneficiario)} placeholder="000.000.000-00 ou 00.000.000/0000-00"
+          value={f.cpfCnpjBeneficiario} onChange={(e) => setF({ ...f, cpfCnpjBeneficiario: maskCpfCnpj(e.target.value) })} maxLength={18} />
       </Field>
       <Field label="Finalidade TED" required>
         <select className={selectClass()} value={f.finalidadeTED} onChange={set('finalidadeTED')}>

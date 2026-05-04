@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { PagamentoGPS } from '../../types/pagamento';
 import { Field, FormGrid, inputClass, today } from './shared';
+import { maskCpfCnpj, maskPeriodo } from '../../lib/masks';
 
 interface Props { onAdd: (p: PagamentoGPS) => void; }
 
@@ -66,7 +67,9 @@ export function GPSForm({ onAdd }: Props) {
       <Field label="Identificador (NIT/PIS/CNPJ)" required error={errors.identificador}
         hint="NIT do contribuinte, PIS ou CNPJ">
         <input type="text" className={inputClass(!!errors.identificador)}
-          placeholder="000.00000.00-0" value={f.identificador} onChange={set('identificador')} maxLength={14} />
+          placeholder="000.000.000-00 ou 00.000.000/0000-00"
+          value={f.identificador}
+          onChange={(e) => setF({ ...f, identificador: maskCpfCnpj(e.target.value) })} maxLength={18} />
       </Field>
       <Field label="Código de Pagamento GPS" required error={errors.codigoPagamento}
         hint="Ex: 1007 (empregados), 1163 (domésticos)">
@@ -75,7 +78,9 @@ export function GPSForm({ onAdd }: Props) {
       </Field>
       <Field label="Competência" required error={errors.competencia}>
         <input type="text" className={inputClass(!!errors.competencia)}
-          placeholder="MMAAAA (ex: 012024)" value={f.competencia} onChange={set('competencia')} maxLength={6} />
+          placeholder="MM/AAAA"
+          value={f.competencia}
+          onChange={(e) => setF({ ...f, competencia: maskPeriodo(e.target.value) })} maxLength={7} />
       </Field>
       <Field label="Valor INSS (R$)" required error={errors.valorInss}>
         <input type="text" className={inputClass(!!errors.valorInss)} placeholder="0,00"

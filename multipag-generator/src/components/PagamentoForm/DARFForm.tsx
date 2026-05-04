@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { PagamentoDARF } from '../../types/pagamento';
 import { validarCpfOuCnpj, detectarTipoDocumento } from '../../lib/validators/cnpj-cpf';
 import { Field, FormGrid, inputClass, today } from './shared';
+import { maskCpfCnpj, maskPeriodo } from '../../lib/masks';
 
 interface Props { onAdd: (p: PagamentoDARF) => void; }
 
@@ -71,7 +72,9 @@ export function DARFForm({ onAdd }: Props) {
     <FormGrid>
       <Field label="CNPJ / CPF do Contribuinte" required error={errors.cnpjCpfContribuinte}>
         <input type="text" className={inputClass(!!errors.cnpjCpfContribuinte)}
-          placeholder="CNPJ ou CPF" value={f.cnpjCpfContribuinte} onChange={set('cnpjCpfContribuinte')} maxLength={18} />
+          placeholder="000.000.000-00 ou 00.000.000/0000-00"
+          value={f.cnpjCpfContribuinte}
+          onChange={(e) => setF({ ...f, cnpjCpfContribuinte: maskCpfCnpj(e.target.value) })} maxLength={18} />
       </Field>
       <Field label="Código da Receita" required error={errors.codigoReceita}
         hint="4 dígitos (ex: 2089, 6015)">
@@ -80,7 +83,9 @@ export function DARFForm({ onAdd }: Props) {
       </Field>
       <Field label="Período de Apuração" required error={errors.periodoApuracao}>
         <input type="text" className={inputClass(!!errors.periodoApuracao)}
-          placeholder="MM/AAAA" value={f.periodoApuracao} onChange={set('periodoApuracao')} maxLength={7} />
+          placeholder="MM/AAAA"
+          value={f.periodoApuracao}
+          onChange={(e) => setF({ ...f, periodoApuracao: maskPeriodo(e.target.value) })} maxLength={7} />
       </Field>
       <Field label="Número de Referência">
         <input type="text" className={inputClass()} placeholder="Processo/Parcelamento" maxLength={16}
