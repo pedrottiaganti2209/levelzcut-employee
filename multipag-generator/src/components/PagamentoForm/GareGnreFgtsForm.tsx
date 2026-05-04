@@ -79,7 +79,7 @@ export function GareGnreFgtsForm({ modalidade, onAdd }: Props) {
       dataPagamento: f.dataPagamento,
       numeroDocumento: f.numeroDocumento,
     });
-    setF({ ...f, cnpjCpfContribuinte: '', codigoReceita: '', periodoApuracao: '', numeroReferencia: '', valorPrincipal: '', valorMulta: '', valorJuros: '' });
+    setF({ ...f, valorPrincipal: '', valorMulta: '', valorJuros: '' });
     setErrors({});
   }
 

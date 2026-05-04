@@ -58,7 +58,7 @@ export function TEDForm({ onAdd }: Props) {
       dataPagamento: f.dataPagamento,
       numeroDocumento: f.numeroDocumento,
     });
-    setF({ ...f, agenciaBeneficiario: '', contaBeneficiario: '', nomeBeneficiario: '', cpfCnpjBeneficiario: '', valor: '' });
+    setF({ ...f, valor: '', numeroDocumento: String(parseInt(f.numeroDocumento || '0') + 1) });
     setErrors({});
   }
 

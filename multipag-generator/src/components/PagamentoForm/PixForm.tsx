@@ -52,7 +52,7 @@ export function PixChaveForm({ modalidade, onAdd }: PixChaveProps) {
       dataPagamento: f.dataPagamento,
       numeroDocumento: f.numeroDocumento,
     });
-    setF({ ...f, chavePix: '', nomeBeneficiario: '', cpfCnpjBeneficiario: '', valor: '' });
+    setF({ ...f, valor: '', numeroDocumento: String(parseInt(f.numeroDocumento || '0') + 1) });
     setErrors({});
   }
 
@@ -144,7 +144,7 @@ export function PixQRForm({ onAdd }: PixQRProps) {
       dataPagamento: f.dataPagamento,
       numeroDocumento: f.numeroDocumento,
     });
-    setF({ ...f, qrCodePayload: '', nomeBeneficiario: '', valor: '' });
+    setF({ ...f, qrCodePayload: '', valor: '' });
     setErrors({});
   }
 

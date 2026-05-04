@@ -68,7 +68,7 @@ export function CreditoContaForm({ modalidade, onAdd }: Props) {
       dataPagamento: f.dataPagamento,
       numeroDocumento: f.numeroDocumento,
     });
-    setF({ ...f, agenciaBeneficiario: '', contaBeneficiario: '', nomeBeneficiario: '', cpfCnpjBeneficiario: '', valor: '', numeroDocumento: String(parseInt(f.numeroDocumento || '0') + 1) });
+    setF({ ...f, valor: '', numeroDocumento: String(parseInt(f.numeroDocumento || '0') + 1) });
     setErrors({});
   }
 

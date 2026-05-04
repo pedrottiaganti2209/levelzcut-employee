@@ -55,7 +55,7 @@ export function GPSForm({ onAdd }: Props) {
       dataPagamento: f.dataPagamento,
       numeroDocumento: f.numeroDocumento,
     });
-    setF({ ...f, identificador: '', codigoPagamento: '', competencia: '', valorInss: '', valorOutrasEntidades: '', valorAtualizacao: '' });
+    setF({ ...f, valorInss: '', valorOutrasEntidades: '', valorAtualizacao: '' });
     setErrors({});
   }
 

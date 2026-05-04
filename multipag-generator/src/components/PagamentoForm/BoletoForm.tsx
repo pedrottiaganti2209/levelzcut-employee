@@ -56,7 +56,7 @@ export function BoletoForm({ modalidade, onAdd }: Props) {
       valor: parseFloat(f.valor.replace(',', '.')),
       numeroDocumento: f.numeroDocumento,
     });
-    setF({ ...f, codigoBarras: '', nomeBeneficiario: '', valor: '' });
+    setF({ ...f, valor: '' });
     setErrors({});
   }
 
