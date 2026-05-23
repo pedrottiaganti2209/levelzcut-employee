@@ -12,7 +12,7 @@ interface Props {
 function PasswordInput({
   value,
   onChange,
-  placeholder = '••••••',
+  placeholder = '••••••••',
   autoComplete,
 }: {
   value: string;
@@ -29,6 +29,7 @@ function PasswordInput({
         onChange={e => onChange(e.target.value)}
         placeholder={placeholder}
         autoComplete={autoComplete}
+        maxLength={128}
         className="w-full bg-gray-900 border border-gray-700 text-white rounded-xl px-4 py-3 pr-12 text-sm focus:outline-none focus:border-yellow-500 transition-colors"
       />
       <button
@@ -79,8 +80,12 @@ export function Login({ onLogin, onSignUp, onResetPassword }: Props) {
       setError('As senhas não coincidem.');
       return;
     }
-    if (password.length < 6) {
-      setError('A senha deve ter pelo menos 6 caracteres.');
+    if (password.length < 8) {
+      setError('A senha deve ter pelo menos 8 caracteres.');
+      return;
+    }
+    if (!/[A-Za-z]/.test(password) || !/\d/.test(password)) {
+      setError('A senha deve conter letras e números.');
       return;
     }
     setLoading(true);
@@ -132,6 +137,7 @@ export function Login({ onLogin, onSignUp, onResetPassword }: Props) {
                 placeholder="seu@email.com"
                 autoComplete="email"
                 autoCapitalize="none"
+                maxLength={254}
                 className="w-full bg-gray-900 border border-gray-700 text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-yellow-500 transition-colors"
               />
             </div>
@@ -190,6 +196,7 @@ export function Login({ onLogin, onSignUp, onResetPassword }: Props) {
                 placeholder="seu@email.com"
                 autoComplete="email"
                 autoCapitalize="none"
+                maxLength={254}
                 className="w-full bg-gray-900 border border-gray-700 text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-yellow-500 transition-colors"
               />
             </div>
@@ -251,6 +258,7 @@ export function Login({ onLogin, onSignUp, onResetPassword }: Props) {
                 placeholder="seu@email.com"
                 autoComplete="email"
                 autoCapitalize="none"
+                maxLength={254}
                 className="w-full bg-gray-900 border border-gray-700 text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-yellow-500 transition-colors"
               />
             </div>

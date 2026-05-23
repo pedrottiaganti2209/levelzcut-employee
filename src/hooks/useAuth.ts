@@ -2,6 +2,10 @@ import { useState, useEffect } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 
+const loginAttempts = new Map<string, { count: number; firstAttempt: number }>();
+const MAX_ATTEMPTS = 5;
+const WINDOW_MS = 15 * 60 * 1000;
+
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -27,8 +31,30 @@ export function useAuth() {
   }, []);
 
   const signIn = async (email: string, password: string): Promise<string | null> => {
+    const key = email.trim().toLowerCase();
+    const now = Date.now();
+    const record = loginAttempts.get(key);
+
+    if (record && now - record.firstAttempt < WINDOW_MS) {
+      if (record.count >= MAX_ATTEMPTS) {
+        return 'Muitas tentativas. Aguarde 15 minutos antes de tentar novamente.';
+      }
+    } else {
+      loginAttempts.delete(key);
+    }
+
     const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
-    if (error) return error.message;
+    if (error) {
+      const current = loginAttempts.get(key);
+      if (current && now - current.firstAttempt < WINDOW_MS) {
+        loginAttempts.set(key, { count: current.count + 1, firstAttempt: current.firstAttempt });
+      } else {
+        loginAttempts.set(key, { count: 1, firstAttempt: now });
+      }
+      return error.message;
+    }
+
+    loginAttempts.delete(key);
     return null;
   };
 
