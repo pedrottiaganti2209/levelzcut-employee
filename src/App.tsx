@@ -28,7 +28,8 @@ function ResetPasswordForm({ onUpdate }: { onUpdate: (pwd: string) => Promise<st
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password !== confirm) { setError('As senhas não coincidem.'); return; }
-    if (password.length < 6) { setError('Mínimo de 6 caracteres.'); return; }
+    if (password.length < 8) { setError('Mínimo de 8 caracteres.'); return; }
+    if (!/[A-Za-z]/.test(password) || !/\d/.test(password)) { setError('A senha deve conter letras e números.'); return; }
     setLoading(true);
     const err = await onUpdate(password);
     if (err) { setError('Não foi possível redefinir. Tente novamente.'); setLoading(false); }
@@ -49,8 +50,9 @@ function ResetPasswordForm({ onUpdate }: { onUpdate: (pwd: string) => Promise<st
                 type={show ? 'text' : 'password'}
                 value={password}
                 onChange={e => setPassword(e.target.value)}
-                placeholder="••••••"
+                placeholder="••••••••"
                 autoComplete="new-password"
+                maxLength={128}
                 className="w-full bg-gray-900 border border-gray-700 text-white rounded-xl px-4 py-3 pr-12 text-sm focus:outline-none focus:border-yellow-500 transition-colors"
               />
               <button type="button" onClick={() => setShow(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 p-1">
@@ -64,8 +66,9 @@ function ResetPasswordForm({ onUpdate }: { onUpdate: (pwd: string) => Promise<st
               type="password"
               value={confirm}
               onChange={e => setConfirm(e.target.value)}
-              placeholder="••••••"
+              placeholder="••••••••"
               autoComplete="new-password"
+              maxLength={128}
               className="w-full bg-gray-900 border border-gray-700 text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-yellow-500 transition-colors"
             />
           </div>
