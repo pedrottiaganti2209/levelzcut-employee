@@ -80,6 +80,7 @@ export function useAuth() {
   };
 
   const signOut = async () => {
+    loginAttempts.clear();
     await supabase.auth.signOut();
   };
 

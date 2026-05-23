@@ -14,8 +14,8 @@ export function PriceSettings({ prices, onSave }: Props) {
 
   const handleSave = (type: ServiceType) => {
     const val = parseFloat((editing[type] ?? '').replace(',', '.'));
-    if (isNaN(val) || val < 0) return;
-    onSave(type, val);
+    if (isNaN(val) || val < 0 || val > 9999.99) return;
+    onSave(type, Math.round(val * 100) / 100);
     setEditing(prev => { const n = { ...prev }; delete n[type]; return n; });
     setSaved(type);
     setTimeout(() => setSaved(null), 1500);
@@ -55,6 +55,7 @@ export function PriceSettings({ prices, onSave }: Props) {
                   type="text"
                   inputMode="decimal"
                   value={currentVal}
+                  maxLength={7}
                   onChange={e => setEditing(prev => ({ ...prev, [type]: e.target.value }))}
                   onFocus={() => setEditing(prev => ({
                     ...prev,

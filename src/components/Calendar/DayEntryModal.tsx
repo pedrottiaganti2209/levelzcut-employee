@@ -26,7 +26,7 @@ export function DayEntryModal({ year, month, day, initial, prices, onSave, onClo
     premium: String(initial?.premium ?? ''),
   });
 
-  const toNum = (s: string) => Math.max(0, parseInt(s, 10) || 0);
+  const toNum = (s: string) => Math.min(999, Math.max(0, parseInt(s, 10) || 0));
 
   const entry: DayEntry = {
     year, month, day,
@@ -82,6 +82,7 @@ export function DayEntryModal({ year, month, day, initial, prices, onSave, onClo
                 <input
                   type="number"
                   min="0"
+                  max="999"
                   inputMode="numeric"
                   value={values[type]}
                   onChange={e => setValues(v => ({ ...v, [type]: e.target.value }))}
@@ -89,7 +90,7 @@ export function DayEntryModal({ year, month, day, initial, prices, onSave, onClo
                   style={{ borderColor: values[type] && toNum(values[type]) > 0 ? SERVICE_COLORS[type] : undefined }}
                 />
                 <button
-                  onClick={() => setValues(v => ({ ...v, [type]: String(toNum(v[type]) + 1) }))}
+                  onClick={() => setValues(v => ({ ...v, [type]: String(Math.min(999, toNum(v[type]) + 1)) }))}
                   className="w-8 h-8 rounded-full bg-gray-800 hover:bg-gray-700 text-white font-bold text-lg flex items-center justify-center transition-colors"
                 >+</button>
               </div>

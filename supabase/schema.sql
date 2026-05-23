@@ -43,6 +43,18 @@ CREATE POLICY "employee_daily_entries_self"
   USING (auth.uid() = user_id)
   WITH CHECK (auth.uid() = user_id);
 
+-- Database-level validation constraints
+ALTER TABLE employee_prices
+  ADD CONSTRAINT valid_price CHECK (price >= 0 AND price <= 9999.99);
+
+ALTER TABLE employee_daily_entries
+  ADD CONSTRAINT valid_counts CHECK (
+    cabelo >= 0 AND cabelo <= 999 AND
+    combo  >= 0 AND combo  <= 999 AND
+    barba  >= 0 AND barba  <= 999 AND
+    premium >= 0 AND premium <= 999
+  );
+
 -- ============================================================
 -- Test users (run AFTER creating tables)
 -- Creates user1@levelzcut.internal / pwd123

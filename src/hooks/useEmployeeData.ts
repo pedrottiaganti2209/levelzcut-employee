@@ -66,7 +66,7 @@ export function useEmployeeData(user: User | null) {
     const { error } = await supabase
       .from('employee_daily_entries')
       .upsert(payload, { onConflict: 'user_id,year,month,day' });
-    if (error) { console.error(error); return; }
+    if (error) return;
 
     setEntries(prev => {
       const idx = prev.findIndex(e => e.year === entry.year && e.month === entry.month && e.day === entry.day);
@@ -87,7 +87,7 @@ export function useEmployeeData(user: User | null) {
         { user_id: user.id, service_type: type, price, updated_at: new Date().toISOString() },
         { onConflict: 'user_id,service_type' }
       );
-    if (error) { console.error(error); return; }
+    if (error) return;
     setPrices(prev => ({ ...prev, [type]: price }));
   }, [user]);
 

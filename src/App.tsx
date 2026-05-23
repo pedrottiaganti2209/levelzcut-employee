@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { CalendarDays, BarChart2, Settings, RefreshCw, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from './hooks/useAuth';
 import { useEmployeeData } from './hooks/useEmployeeData';
@@ -92,6 +92,13 @@ export default function App() {
   const { user, loading: authLoading, isPasswordRecovery, signIn, signUp, resetPassword, updatePassword, signOut } = useAuth();
   const { prices, loading: dataLoading, saveEntry, savePrice, getEntry, getMonthEntries } = useEmployeeData(user);
   const [activeTab, setActiveTab] = useState<Tab>('calendar');
+  const [recoveryExpired, setRecoveryExpired] = useState(false);
+
+  useEffect(() => {
+    if (!isPasswordRecovery) { setRecoveryExpired(false); return; }
+    const timer = setTimeout(() => setRecoveryExpired(true), 30 * 60 * 1000);
+    return () => clearTimeout(timer);
+  }, [isPasswordRecovery]);
 
   const today = new Date();
   const currentYear = today.getFullYear();
@@ -107,7 +114,7 @@ export default function App() {
     );
   }
 
-  if (isPasswordRecovery) {
+  if (isPasswordRecovery && !recoveryExpired) {
     return <ResetPasswordForm onUpdate={updatePassword} />;
   }
 
