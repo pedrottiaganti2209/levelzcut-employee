@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Scissors, Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
+import trimnexLogo from '../assets/trimnex-logo.png';
 
 type Mode = 'login' | 'signup' | 'forgot';
 
@@ -119,9 +120,9 @@ export function Login({ onLogin, onSignUp, onResetPassword }: Props) {
         {/* Logo */}
         <div className="text-center mb-10">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-yellow-600/20 border border-yellow-600/40 mb-4">
-            <Scissors size={28} className="text-yellow-500" />
+            <img src={trimnexLogo} alt="" className="w-8 h-8" />
           </div>
-          <h1 className="text-white text-2xl font-bold tracking-tight">LevelzCut</h1>
+          <h1 className="text-white text-2xl font-bold tracking-tight">Trimnex</h1>
           <p className="text-gray-500 text-sm mt-1">Área do Barbeiro</p>
         </div>
 

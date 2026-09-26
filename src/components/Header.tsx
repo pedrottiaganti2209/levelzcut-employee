@@ -1,4 +1,5 @@
-import { Scissors, LogOut } from 'lucide-react';
+import { LogOut } from 'lucide-react';
+import trimnexLogo from '../assets/trimnex-logo.png';
 
 interface Props {
   username: string;
@@ -10,8 +11,8 @@ export function Header({ username, onSignOut }: Props) {
     <header className="border-b border-gray-800 bg-black sticky top-0 z-40">
       <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Scissors size={18} className="text-yellow-500" />
-          <span className="text-white font-bold text-sm tracking-tight">LevelzCut</span>
+          <img src={trimnexLogo} alt="" className="w-[18px] h-[18px]" />
+          <span className="text-white font-bold text-sm tracking-tight">Trimnex</span>
           <span className="text-gray-600 text-xs ml-1">Barbeiro</span>
         </div>
         <div className="flex items-center gap-3">
