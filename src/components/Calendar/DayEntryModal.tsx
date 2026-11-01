@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { X, Check } from 'lucide-react';
-import type { DayEntry, Prices } from '../../types';
-import { SERVICE_TYPES, SERVICE_LABELS, SERVICE_EMOJIS, SERVICE_COLORS, totalEarnings } from '../../types';
+import type { DayEntry, Prices, ServiceDef } from '../../types';
+import { totalEarnings } from '../../types';
 
 const MONTH_NAMES = [
   'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
@@ -13,30 +13,29 @@ interface Props {
   month: number;
   day: number;
   initial: DayEntry | undefined;
+  services: ServiceDef[]; // visíveis — o que entra no formulário
   prices: Prices;
   onSave: (entry: DayEntry) => void;
   onClose: () => void;
 }
 
-export function DayEntryModal({ year, month, day, initial, prices, onSave, onClose }: Props) {
-  const [values, setValues] = useState<Record<string, string>>({
-    cabelo: String(initial?.cabelo ?? ''),
-    combo: String(initial?.combo ?? ''),
-    barba: String(initial?.barba ?? ''),
-    premium: String(initial?.premium ?? ''),
+export function DayEntryModal({ year, month, day, initial, services, prices, onSave, onClose }: Props) {
+  const [values, setValues] = useState<Record<string, string>>(() => {
+    const v: Record<string, string> = {};
+    services.forEach(s => { v[s.type] = String(initial?.counts[s.type] ?? ''); });
+    return v;
   });
 
-  const toNum = (s: string) => Math.min(999, Math.max(0, parseInt(s, 10) || 0));
+  const toNum = (s: string | undefined) => Math.min(999, Math.max(0, parseInt(s ?? '', 10) || 0));
 
-  const entry: DayEntry = {
-    year, month, day,
-    cabelo: toNum(values.cabelo),
-    combo: toNum(values.combo),
-    barba: toNum(values.barba),
-    premium: toNum(values.premium),
-  };
+  // Preserva qualquer chave que já existisse no dia (ex.: um serviço que
+  // depois foi arquivado) e só sobrescreve as que aparecem no formulário.
+  const counts: Record<string, number> = { ...(initial?.counts ?? {}) };
+  services.forEach(s => { counts[s.type] = toNum(values[s.type]); });
 
-  const totalQty = entry.cabelo + entry.combo + entry.barba + entry.premium;
+  const entry: DayEntry = { year, month, day, counts };
+
+  const totalQty = Object.values(counts).reduce((s, v) => s + v, 0);
   const totalVal = totalEarnings(entry, prices);
 
   const handleSave = () => {
@@ -64,38 +63,41 @@ export function DayEntryModal({ year, month, day, initial, prices, onSave, onClo
         </div>
 
         {/* Service inputs */}
-        <div className="px-5 py-4 space-y-3">
-          {SERVICE_TYPES.map(type => (
-            <div key={type} className="flex items-center gap-3">
-              <div className="w-8 text-center text-lg">{SERVICE_EMOJIS[type]}</div>
-              <div className="flex-1">
-                <span className="text-gray-300 text-sm">{SERVICE_LABELS[type]}</span>
-                <span className="text-gray-600 text-xs ml-2">
-                  R$ {prices[type].toFixed(0)} / un
-                </span>
+        <div className="px-5 py-4 space-y-3 max-h-[50vh] overflow-y-auto">
+          {services.map(service => {
+            const type = service.type;
+            return (
+              <div key={type} className="flex items-center gap-3">
+                <div className="w-8 text-center text-lg">{service.emoji}</div>
+                <div className="flex-1">
+                  <span className="text-gray-300 text-sm">{service.label}</span>
+                  <span className="text-gray-600 text-xs ml-2">
+                    R$ {service.price.toFixed(0)} / un
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setValues(v => ({ ...v, [type]: String(Math.max(0, toNum(v[type]) - 1)) }))}
+                    className="w-8 h-8 rounded-full bg-gray-800 hover:bg-gray-700 text-white font-bold text-lg flex items-center justify-center transition-colors"
+                  >−</button>
+                  <input
+                    type="number"
+                    min="0"
+                    max="999"
+                    inputMode="numeric"
+                    value={values[type] ?? ''}
+                    onChange={e => setValues(v => ({ ...v, [type]: e.target.value }))}
+                    className="w-12 text-center bg-gray-900 border border-gray-700 text-white font-bold rounded-lg py-1.5 text-sm focus:outline-none focus:border-yellow-500"
+                    style={{ borderColor: values[type] && toNum(values[type]) > 0 ? service.color : undefined }}
+                  />
+                  <button
+                    onClick={() => setValues(v => ({ ...v, [type]: String(Math.min(999, toNum(v[type]) + 1)) }))}
+                    className="w-8 h-8 rounded-full bg-gray-800 hover:bg-gray-700 text-white font-bold text-lg flex items-center justify-center transition-colors"
+                  >+</button>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setValues(v => ({ ...v, [type]: String(Math.max(0, toNum(v[type]) - 1)) }))}
-                  className="w-8 h-8 rounded-full bg-gray-800 hover:bg-gray-700 text-white font-bold text-lg flex items-center justify-center transition-colors"
-                >−</button>
-                <input
-                  type="number"
-                  min="0"
-                  max="999"
-                  inputMode="numeric"
-                  value={values[type]}
-                  onChange={e => setValues(v => ({ ...v, [type]: e.target.value }))}
-                  className="w-12 text-center bg-gray-900 border border-gray-700 text-white font-bold rounded-lg py-1.5 text-sm focus:outline-none focus:border-yellow-500"
-                  style={{ borderColor: values[type] && toNum(values[type]) > 0 ? SERVICE_COLORS[type] : undefined }}
-                />
-                <button
-                  onClick={() => setValues(v => ({ ...v, [type]: String(Math.min(999, toNum(v[type]) + 1)) }))}
-                  className="w-8 h-8 rounded-full bg-gray-800 hover:bg-gray-700 text-white font-bold text-lg flex items-center justify-center transition-colors"
-                >+</button>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Summary + Save */}

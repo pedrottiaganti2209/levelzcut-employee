@@ -1,8 +1,9 @@
-import type { DayEntry, Prices } from '../../types';
-import { SERVICE_TYPES, SERVICE_LABELS, SERVICE_EMOJIS, SERVICE_COLORS, totalCuts, totalEarnings } from '../../types';
+import type { DayEntry, Prices, ServiceDef } from '../../types';
+import { findService, totalCuts, totalEarnings } from '../../types';
 
 interface Props {
   entries: DayEntry[];
+  allServices: ServiceDef[];
   prices: Prices;
   year?: number;
   month: number;
@@ -17,20 +18,22 @@ function fmt(v: number) {
   return v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-export function MonthSummary({ entries, prices, month }: Props) {
+export function MonthSummary({ entries, allServices, prices, month }: Props) {
   const totalQty = entries.reduce((s, e) => s + totalCuts(e), 0);
   const totalVal = entries.reduce((s, e) => s + totalEarnings(e, prices), 0);
   const daysWorked = entries.filter(e => totalCuts(e) > 0).length;
   const avgPerDay = daysWorked > 0 ? totalVal / daysWorked : 0;
   const avgQtyPerDay = daysWorked > 0 ? totalQty / daysWorked : 0;
 
-  const serviceTotals = { cabelo: 0, combo: 0, barba: 0, premium: 0 };
+  const serviceTotals: Record<string, number> = {};
   entries.forEach(e => {
-    serviceTotals.cabelo += e.cabelo;
-    serviceTotals.combo += e.combo;
-    serviceTotals.barba += e.barba;
-    serviceTotals.premium += e.premium;
+    Object.entries(e.counts).forEach(([type, qty]) => {
+      if (qty > 0) serviceTotals[type] = (serviceTotals[type] ?? 0) + qty;
+    });
   });
+  const usedTypes = Object.keys(serviceTotals).sort(
+    (a, b) => findService(allServices, a).sortOrder - findService(allServices, b).sortOrder
+  );
 
   if (totalQty === 0) {
     return (
@@ -72,17 +75,17 @@ export function MonthSummary({ entries, prices, month }: Props) {
       <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
         <p className="text-gray-500 text-xs uppercase tracking-wider mb-3">Por tipo de serviço</p>
         <div className="space-y-2.5">
-          {SERVICE_TYPES.map(type => {
+          {usedTypes.map(type => {
+            const service = findService(allServices, type);
             const qty = serviceTotals[type];
-            const val = qty * prices[type];
+            const val = qty * (prices[type] ?? 0);
             const pct = totalQty > 0 ? (qty / totalQty) * 100 : 0;
-            if (qty === 0) return null;
             return (
               <div key={type}>
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-sm text-gray-300 flex items-center gap-2">
-                    <span>{SERVICE_EMOJIS[type]}</span>
-                    {SERVICE_LABELS[type]}
+                    <span>{service.emoji}</span>
+                    {service.label}
                   </span>
                   <div className="text-right">
                     <span className="text-white font-mono text-sm font-bold">{qty}×</span>
@@ -92,7 +95,7 @@ export function MonthSummary({ entries, prices, month }: Props) {
                 <div className="h-1.5 bg-gray-800 rounded-full overflow-hidden">
                   <div
                     className="h-full rounded-full transition-all"
-                    style={{ width: `${pct}%`, background: SERVICE_COLORS[type] }}
+                    style={{ width: `${pct}%`, background: service.color }}
                   />
                 </div>
               </div>

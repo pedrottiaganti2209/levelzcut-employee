@@ -90,7 +90,18 @@ function ResetPasswordForm({ onUpdate }: { onUpdate: (pwd: string) => Promise<st
 
 export default function App() {
   const { user, loading: authLoading, isPasswordRecovery, signIn, signUp, resetPassword, updatePassword, signOut } = useAuth();
-  const { prices, loading: dataLoading, saveEntry, savePrice, getEntry, getMonthEntries } = useEmployeeData(user);
+  const {
+    prices,
+    allServices,
+    visibleServices,
+    loading: dataLoading,
+    saveEntry,
+    savePrice,
+    addService,
+    removeService,
+    getEntry,
+    getMonthEntries,
+  } = useEmployeeData(user);
   const [activeTab, setActiveTab] = useState<Tab>('calendar');
   const [recoveryExpired, setRecoveryExpired] = useState(false);
 
@@ -136,6 +147,8 @@ export default function App() {
             {activeTab === 'calendar' && (
               <CalendarView
                 today={today}
+                allServices={allServices}
+                visibleServices={visibleServices}
                 prices={prices}
                 getEntry={getEntry}
                 getMonthEntries={getMonthEntries}
@@ -145,6 +158,7 @@ export default function App() {
             {activeTab === 'summary' && (
               <MonthSummary
                 entries={getMonthEntries(currentYear, currentMonth)}
+                allServices={allServices}
                 prices={prices}
                 year={currentYear}
                 month={currentMonth}
@@ -153,13 +167,19 @@ export default function App() {
             {activeTab === 'chart' && (
               <PerformanceChart
                 entries={getMonthEntries(currentYear, currentMonth)}
+                allServices={allServices}
                 prices={prices}
                 year={currentYear}
                 month={currentMonth}
               />
             )}
             {activeTab === 'settings' && (
-              <PriceSettings prices={prices} onSave={savePrice} />
+              <PriceSettings
+                services={visibleServices}
+                onSavePrice={savePrice}
+                onAddService={addService}
+                onRemoveService={removeService}
+              />
             )}
           </>
         )}

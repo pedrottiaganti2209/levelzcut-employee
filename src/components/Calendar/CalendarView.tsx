@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import type { DayEntry, Prices } from '../../types';
-import { SERVICE_COLORS, totalCuts, totalEarnings, TRACKING_START } from '../../types';
+import type { DayEntry, Prices, ServiceDef } from '../../types';
+import { findService, totalCuts, totalEarnings, TRACKING_START } from '../../types';
 import { DayEntryModal } from './DayEntryModal';
 
 const MONTH_NAMES = [
@@ -12,6 +12,8 @@ const WEEKDAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
 interface Props {
   today: Date;
+  allServices: ServiceDef[]; // pra legenda/pontos de lançamentos antigos (inclui arquivados)
+  visibleServices: ServiceDef[]; // pro formulário de lançamento
   prices: Prices;
   getEntry: (year: number, month: number, day: number) => DayEntry | undefined;
   getMonthEntries: (year: number, month: number) => DayEntry[];
@@ -22,7 +24,7 @@ function formatCurrency(v: number) {
   return `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
 }
 
-export function CalendarView({ today, prices, getEntry, getMonthEntries, onSave }: Props) {
+export function CalendarView({ today, allServices, visibleServices, prices, getEntry, getMonthEntries, onSave }: Props) {
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth() + 1);
   const [editDay, setEditDay] = useState<number | null>(null);
@@ -35,14 +37,18 @@ export function CalendarView({ today, prices, getEntry, getMonthEntries, onSave 
   const monthTotalQty = monthEntries.reduce((s, e) => s + totalCuts(e), 0);
   const monthTotalEarnings = monthEntries.reduce((s, e) => s + totalEarnings(e, prices), 0);
 
-  // Per-service totals for the month
-  const serviceTotals = { cabelo: 0, combo: 0, barba: 0, premium: 0 };
+  // Totais por serviço do mês — descobertos a partir dos dados em si (não
+  // de uma lista fixa), então cobre qualquer serviço que o barbeiro tenha
+  // adicionado, ou até um já arquivado que tenha lançamento antigo.
+  const serviceTotals: Record<string, number> = {};
   monthEntries.forEach(e => {
-    serviceTotals.cabelo += e.cabelo;
-    serviceTotals.combo += e.combo;
-    serviceTotals.barba += e.barba;
-    serviceTotals.premium += e.premium;
+    Object.entries(e.counts).forEach(([type, qty]) => {
+      if (qty > 0) serviceTotals[type] = (serviceTotals[type] ?? 0) + qty;
+    });
   });
+  const usedTypes = Object.keys(serviceTotals).sort(
+    (a, b) => findService(allServices, a).sortOrder - findService(allServices, b).sortOrder
+  );
 
   const canGoPrev = year > TRACKING_START.year || (year === TRACKING_START.year && month > TRACKING_START.month);
   const isCurrentMonth = year === today.getFullYear() && month === today.getMonth() + 1;
@@ -89,19 +95,20 @@ export function CalendarView({ today, prices, getEntry, getMonthEntries, onSave 
       </div>
 
       {/* Per-service badge row */}
-      {monthTotalQty > 0 && (
+      {usedTypes.length > 0 && (
         <div className="flex gap-2 flex-wrap">
-          {(['cabelo', 'combo', 'barba', 'premium'] as const).map(type => (
-            serviceTotals[type] > 0 ? (
+          {usedTypes.map(type => {
+            const service = findService(allServices, type);
+            return (
               <span
                 key={type}
                 className="text-xs px-2.5 py-1 rounded-full font-semibold"
-                style={{ background: SERVICE_COLORS[type] + '22', color: SERVICE_COLORS[type] }}
+                style={{ background: service.color + '22', color: service.color }}
               >
-                {serviceTotals[type]}× {type}
+                {serviceTotals[type]}× {service.emoji} {service.label}
               </span>
-            ) : null
-          ))}
+            );
+          })}
         </div>
       )}
 
@@ -127,6 +134,7 @@ export function CalendarView({ today, prices, getEntry, getMonthEntries, onSave 
             const qty = entry ? totalCuts(entry) : 0;
             const earnings = entry ? totalEarnings(entry, prices) : 0;
             const hasData = qty > 0;
+            const dayTypes = entry ? Object.keys(entry.counts).filter(t => entry.counts[t] > 0) : [];
 
             return (
               <button
@@ -159,13 +167,11 @@ export function CalendarView({ today, prices, getEntry, getMonthEntries, onSave 
                       </>
                     )}
                     {/* Service color dots */}
-                    {entry && (
+                    {dayTypes.length > 0 && (
                       <div className="flex gap-0.5 mt-0.5 flex-wrap justify-center">
-                        {(['cabelo', 'combo', 'barba', 'premium'] as const).map(t =>
-                          entry[t] > 0 ? (
-                            <span key={t} className="w-1.5 h-1.5 rounded-full" style={{ background: SERVICE_COLORS[t] }} />
-                          ) : null
-                        )}
+                        {dayTypes.map(t => (
+                          <span key={t} className="w-1.5 h-1.5 rounded-full" style={{ background: findService(allServices, t).color }} />
+                        ))}
                       </div>
                     )}
                   </>
@@ -184,6 +190,7 @@ export function CalendarView({ today, prices, getEntry, getMonthEntries, onSave 
           month={month}
           day={editDay}
           initial={getEntry(year, month, editDay)}
+          services={visibleServices}
           prices={prices}
           onSave={onSave}
           onClose={() => setEditDay(null)}

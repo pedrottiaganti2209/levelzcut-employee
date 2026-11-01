@@ -2,11 +2,12 @@ import {
   ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, Legend,
 } from 'recharts';
-import type { DayEntry, Prices } from '../../types';
-import { SERVICE_COLORS, SERVICE_LABELS, totalCuts, totalEarnings } from '../../types';
+import type { DayEntry, Prices, ServiceDef } from '../../types';
+import { findService, totalEarnings } from '../../types';
 
 interface Props {
   entries: DayEntry[];
+  allServices: ServiceDef[];
   prices: Prices;
   year: number;
   month: number;
@@ -38,24 +39,25 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   );
 };
 
-export function PerformanceChart({ entries, prices, year, month }: Props) {
+export function PerformanceChart({ entries, allServices, prices, year, month }: Props) {
   const daysInMonth = new Date(year, month, 0).getDate();
+
+  // Tipos que de fato aparecem nos lançamentos do mês — cada um vira uma
+  // série empilhada no gráfico, sem depender de uma lista fixa de 4.
+  const typesPresent = Array.from(
+    new Set(entries.flatMap(e => Object.keys(e.counts).filter(t => e.counts[t] > 0)))
+  ).sort((a, b) => findService(allServices, a).sortOrder - findService(allServices, b).sortOrder);
 
   const data = Array.from({ length: daysInMonth }, (_, i) => {
     const day = i + 1;
     const entry = entries.find(e => e.day === day);
-    if (!entry || totalCuts(entry) === 0) return { day, cabelo: 0, combo: 0, barba: 0, premium: 0, earnings: 0 };
-    return {
-      day,
-      cabelo: entry.cabelo,
-      combo: entry.combo,
-      barba: entry.barba,
-      premium: entry.premium,
-      earnings: totalEarnings(entry, prices),
-    };
-  }).filter(d => d.cabelo + d.combo + d.barba + d.premium > 0);
+    const row: Record<string, number> = { day };
+    typesPresent.forEach(t => { row[t] = entry?.counts[t] ?? 0; });
+    row.earnings = entry ? totalEarnings(entry, prices) : 0;
+    return row;
+  }).filter(d => typesPresent.some(t => d[t] > 0));
 
-  if (data.length === 0) {
+  if (data.length === 0 || typesPresent.length === 0) {
     return (
       <div className="bg-gray-900 border border-gray-800 rounded-xl p-8 text-center">
         <p className="text-gray-500 text-sm">Sem dados para exibir no gráfico.</p>
@@ -83,17 +85,20 @@ export function PerformanceChart({ entries, prices, year, month }: Props) {
             formatter={(value) => <span style={{ color: '#9ca3af' }}>{value}</span>}
           />
           {/* Stacked quantity bars */}
-          {(['cabelo', 'combo', 'barba', 'premium'] as const).map(type => (
-            <Bar
-              key={type}
-              yAxisId="qty"
-              dataKey={type}
-              name={SERVICE_LABELS[type]}
-              stackId="qty"
-              fill={SERVICE_COLORS[type]}
-              fillOpacity={0.85}
-            />
-          ))}
+          {typesPresent.map(type => {
+            const service = findService(allServices, type);
+            return (
+              <Bar
+                key={type}
+                yAxisId="qty"
+                dataKey={type}
+                name={service.label}
+                stackId="qty"
+                fill={service.color}
+                fillOpacity={0.85}
+              />
+            );
+          })}
           {/* Earnings line */}
           <Line
             yAxisId="val"
