@@ -98,44 +98,51 @@ export function useEmployeeData(user: User | null) {
     setAllServices(prev => prev.map(s => (s.type === type ? { ...s, price } : s)));
   }, [user]);
 
-  const addService = useCallback(async (label: string, emoji: string) => {
-    if (!user) return;
+  // Devolve null em caso de sucesso, ou a mensagem de erro — a tela mostra
+  // isso pro barbeiro em vez de reverter em silêncio (foi exatamente a
+  // falta disso que escondeu o bug do CHECK constraint na primeira vez).
+  const addService = useCallback(async (label: string, emoji: string): Promise<string | null> => {
+    if (!user) return 'Não autenticado.';
     const trimmed = label.trim();
-    if (!trimmed) return;
+    if (!trimmed) return 'Digite um nome.';
     const type = slugify(trimmed);
 
+    const existing = allServices.find(s => s.type === type);
+    const sortOrder = existing ? existing.sortOrder : allServices.length;
+    const color = existing ? existing.color : nextColor(sortOrder);
+    const price = existing ? existing.price : 0;
+
+    const { error } = await supabase
+      .from('employee_prices')
+      .upsert(
+        {
+          user_id: user.id,
+          service_type: type,
+          label: trimmed,
+          emoji,
+          color,
+          sort_order: sortOrder,
+          is_core: false,
+          archived: false,
+          price,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'user_id,service_type' }
+      );
+
+    if (error) return error.message;
+
     setAllServices(prev => {
-      const existingIdx = prev.findIndex(s => s.type === type);
-      const sortOrder = existingIdx >= 0 ? prev[existingIdx].sortOrder : prev.length;
-      const color = existingIdx >= 0 ? prev[existingIdx].color : nextColor(sortOrder);
-
-      supabase
-        .from('employee_prices')
-        .upsert(
-          {
-            user_id: user.id,
-            service_type: type,
-            label: trimmed,
-            emoji,
-            color,
-            sort_order: sortOrder,
-            is_core: false,
-            archived: false,
-            price: existingIdx >= 0 ? prev[existingIdx].price : 0,
-            updated_at: new Date().toISOString(),
-          },
-          { onConflict: 'user_id,service_type' }
-        )
-        .then(({ error }) => { if (error) loadData(); });
-
-      if (existingIdx >= 0) {
+      const idx = prev.findIndex(s => s.type === type);
+      if (idx >= 0) {
         const next = [...prev];
-        next[existingIdx] = { ...next[existingIdx], label: trimmed, emoji, archived: false };
+        next[idx] = { ...next[idx], label: trimmed, emoji, archived: false };
         return next;
       }
-      return [...prev, { type, label: trimmed, emoji, color, price: 0, sortOrder, isCore: false, archived: false }];
+      return [...prev, { type, label: trimmed, emoji, color, price, sortOrder, isCore: false, archived: false }];
     });
-  }, [user, loadData]);
+    return null;
+  }, [user, allServices]);
 
   const removeService = useCallback(async (type: string) => {
     if (!user) return;

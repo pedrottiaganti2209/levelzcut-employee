@@ -6,7 +6,7 @@ import { EMOJI_PALETTE, SERVICE_SUGGESTIONS } from '../../types';
 interface Props {
   services: ServiceDef[]; // visíveis (não arquivados)
   onSavePrice: (type: string, price: number) => void;
-  onAddService: (label: string, emoji: string) => void;
+  onAddService: (label: string, emoji: string) => Promise<string | null>;
   onRemoveService: (type: string) => void;
 }
 
@@ -17,6 +17,8 @@ export function PriceSettings({ services, onSavePrice, onAddService, onRemoveSer
   const [formOpen, setFormOpen] = useState(false);
   const [formLabel, setFormLabel] = useState('');
   const [formEmoji, setFormEmoji] = useState(EMOJI_PALETTE[0]);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
   const [confirmingRemove, setConfirmingRemove] = useState<string | null>(null);
 
   const handleSave = (type: string) => {
@@ -32,11 +34,19 @@ export function PriceSettings({ services, onSavePrice, onAddService, onRemoveSer
     setFormOpen(false);
     setFormLabel('');
     setFormEmoji(EMOJI_PALETTE[0]);
+    setFormError(null);
   };
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (!formLabel.trim()) return;
-    onAddService(formLabel.trim(), formEmoji);
+    setSaving(true);
+    setFormError(null);
+    const error = await onAddService(formLabel.trim(), formEmoji);
+    setSaving(false);
+    if (error) {
+      setFormError('Não foi possível adicionar. Tente de novo em instantes.');
+      return;
+    }
     closeForm();
   };
 
@@ -194,21 +204,28 @@ export function PriceSettings({ services, onSavePrice, onAddService, onRemoveSer
               </div>
             </div>
 
+            {formError && (
+              <p className="text-red-400 text-xs text-center bg-red-900/20 border border-red-800 rounded-lg py-2 px-3">
+                {formError}
+              </p>
+            )}
+
             <div className="flex gap-2 pt-1">
               <button
                 type="button"
                 onClick={closeForm}
-                className="flex-1 text-xs text-gray-400 hover:text-gray-200 uppercase tracking-wider py-2.5"
+                disabled={saving}
+                className="flex-1 text-xs text-gray-400 hover:text-gray-200 uppercase tracking-wider py-2.5 disabled:opacity-50"
               >
                 Cancelar
               </button>
               <button
                 type="button"
                 onClick={handleAdd}
-                disabled={!formLabel.trim()}
+                disabled={!formLabel.trim() || saving}
                 className="flex-[2] bg-yellow-600 hover:bg-yellow-500 disabled:bg-gray-800 disabled:text-gray-600 text-black font-bold rounded-lg py-2.5 text-xs uppercase tracking-wider transition-colors"
               >
-                Adicionar
+                {saving ? 'Adicionando...' : 'Adicionar'}
               </button>
             </div>
           </div>
