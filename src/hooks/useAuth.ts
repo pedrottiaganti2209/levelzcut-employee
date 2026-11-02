@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { User } from '@supabase/supabase-js';
+import posthog from 'posthog-js';
 import { supabase } from '../lib/supabase';
 
 const loginAttempts = new Map<string, { count: number; firstAttempt: number }>();
@@ -24,6 +25,11 @@ export function useAuth() {
       } else {
         setIsPasswordRecovery(false);
         setUser(session?.user ?? null);
+      }
+      if (session?.user) {
+        posthog.identify(session.user.id, { email: session.user.email });
+      } else if (event === 'SIGNED_OUT') {
+        posthog.reset();
       }
     });
 
