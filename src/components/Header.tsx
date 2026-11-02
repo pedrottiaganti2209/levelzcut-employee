@@ -16,7 +16,7 @@ export function Header({ username, onSignOut }: Props) {
           <span className="text-gray-600 text-xs ml-1">Barbeiro</span>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-gray-400 text-xs">{username}</span>
+          <span className="text-gray-400 text-xs">Olá, <span className="text-yellow-500 font-medium">{username}</span></span>
           <button
             onClick={onSignOut}
             className="p-1.5 rounded-lg hover:bg-gray-800 transition-colors"
