@@ -3,6 +3,7 @@ import { CalendarDays, BarChart2, Settings, RefreshCw, Eye, EyeOff } from 'lucid
 import { useAuth } from './hooks/useAuth';
 import { useEmployeeData } from './hooks/useEmployeeData';
 import { Login } from './components/Login';
+import { SetDisplayName } from './components/SetDisplayName';
 import { Header } from './components/Header';
 import { CalendarView } from './components/Calendar/CalendarView';
 import { MonthSummary } from './components/Dashboard/MonthSummary';
@@ -89,7 +90,7 @@ function ResetPasswordForm({ onUpdate }: { onUpdate: (pwd: string) => Promise<st
 }
 
 export default function App() {
-  const { user, loading: authLoading, isPasswordRecovery, signIn, signUp, resetPassword, updatePassword, signOut } = useAuth();
+  const { user, loading: authLoading, isPasswordRecovery, displayName, needsDisplayName, saveDisplayName, signIn, signUp, resetPassword, updatePassword, signOut } = useAuth();
   const {
     prices,
     allServices,
@@ -115,8 +116,6 @@ export default function App() {
   const currentYear = today.getFullYear();
   const currentMonth = today.getMonth() + 1;
 
-  const username = user?.email?.split('@')[0] ?? '';
-
   if (authLoading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
@@ -133,9 +132,13 @@ export default function App() {
     return <Login onLogin={signIn} onSignUp={signUp} onResetPassword={resetPassword} />;
   }
 
+  if (needsDisplayName) {
+    return <SetDisplayName onSave={saveDisplayName} />;
+  }
+
   return (
     <div className="min-h-screen bg-black text-white">
-      <Header username={username} onSignOut={signOut} />
+      <Header username={displayName} onSignOut={signOut} />
 
       <main className="max-w-2xl mx-auto px-4 pb-24 pt-5">
         {dataLoading ? (

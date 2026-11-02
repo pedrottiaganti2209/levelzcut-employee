@@ -84,5 +84,20 @@ export function useAuth() {
     await supabase.auth.signOut();
   };
 
-  return { user, loading, isPasswordRecovery, signIn, signUp, resetPassword, updatePassword, signOut };
+  const displayName: string =
+    (user?.user_metadata?.display_name as string | undefined) ||
+    user?.email?.split('@')[0] ||
+    '';
+  const needsDisplayName = !!user && !user.user_metadata?.display_name;
+
+  const saveDisplayName = async (name: string): Promise<string | null> => {
+    const { error } = await supabase.auth.updateUser({ data: { display_name: name } });
+    if (error) return error.message;
+    // força re-leitura da sessão para atualizar user_metadata no estado
+    const { data } = await supabase.auth.getSession();
+    setUser(data.session?.user ?? null);
+    return null;
+  };
+
+  return { user, loading, isPasswordRecovery, displayName, needsDisplayName, saveDisplayName, signIn, signUp, resetPassword, updatePassword, signOut };
 }
